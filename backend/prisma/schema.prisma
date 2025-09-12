@@ -1,0 +1,89 @@
+generator client {
+  provider = "prisma-client-js"
+  
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+enum BoardRole {
+  OWNER
+  ADMIN
+  MEMBER
+  VIEWER
+}
+
+model User { 
+  id           String         @id @default(cuid()) @map("_id")
+  email        String         @unique
+  passwordHash String
+  fullName     String
+  createdAt    DateTime       @default(now())
+  updatedAt    DateTime       @updatedAt
+
+  ownedBoards  Board[]        @relation("OwnedBoards")
+
+  memberships  BoardMember[]  @relation("UserBoardMemberships")
+}
+
+model Board {
+  id          String        @id @default(cuid()) @map("_id")
+  title       String
+  description String?
+  ownerId     String
+
+  owner       User          @relation("OwnedBoards", fields: [ownerId], references: [id])
+
+  columns     Column[]
+  members     BoardMember[] @relation("BoardMembers")
+
+  createdAt   DateTime      @default(now())
+  updatedAt   DateTime      @updatedAt
+
+  @@index([ownerId])
+}
+
+model Column {
+  id        String   @id @default(cuid()) @map("_id")
+  title     String
+  order     Int
+  boardId   String
+  board     Board    @relation(fields: [boardId], references: [id])
+  cards     Card[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([boardId, order]) 
+  @@index([boardId])
+}
+
+model Card {
+  id        String   @id @default(cuid()) @map("_id")
+  title     String
+  content   String?
+  order     Int
+  columnId  String
+  column    Column   @relation(fields: [columnId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([columnId, order]) 
+  @@index([columnId])
+}
+
+model BoardMember {
+  id       String     @id @default(cuid()) @map("_id")
+  boardId  String
+  userId   String
+  role     BoardRole
+  joinedAt DateTime   @default(now())
+
+  board    Board      @relation("BoardMembers", fields: [boardId], references: [id])  
+  user     User       @relation("UserBoardMemberships", fields: [userId], references: [id])
+
+  @@unique([boardId, userId])
+  @@index([boardId])
+  @@index([userId])
+}
