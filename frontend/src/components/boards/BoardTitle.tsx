@@ -1,5 +1,3 @@
-// src/components/boards/BoardTile.tsx
-// src/components/boards/BoardTile.tsx
 "use client";
 
 import Link from "next/link";

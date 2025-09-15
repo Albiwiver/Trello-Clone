@@ -63,14 +63,18 @@ async createBoard({ title, ownerId, description }: CreateBoardDto) {
 
 
   async findOwnedBoardsByUser(userId: string) {
-    const boardByUser = await this.prismaService.board.findMany({
-      where:{ownerId: userId},
-      select:{id: true, title: true, description: true}
-    })
-    if(!boardByUser)
+
+    try {
+      const boardByUser = await this.prismaService.board.findMany({
+        where:{ownerId: userId},
+        select:{id: true, title: true, description: true}
+      })
+      return boardByUser
+      
+    } catch (error) {
       throw new NotFoundException(`UserBoards with ${userId} were not found`)
 
-    return boardByUser
+    }
     
   }
   
@@ -93,15 +97,15 @@ async createBoard({ title, ownerId, description }: CreateBoardDto) {
     return current; 
   }
 
-  try {
-    return await this.prismaService.board.update({
-      where: { id },
-      data,
-      select: { id: true, title: true, description: true, ownerId: true },
-    });
-  } catch {
-    throw new NotFoundException('Board not found');
-  }
+    try {
+      return await this.prismaService.board.update({
+        where: { id },
+        data,
+        select: { id: true, title: true, description: true, ownerId: true },
+      });
+    } catch {
+      throw new NotFoundException('Board not found');
+    }
 
   }
 
@@ -110,11 +114,11 @@ async createBoard({ title, ownerId, description }: CreateBoardDto) {
 
   async removeBoardById(id: string) {
     const exists = await this.prismaService.board.findUnique({ where: { id }, select: { id: true } });
-  if (!exists) throw new NotFoundException(`Board with ${id} not found`);
+    if (!exists) throw new NotFoundException(`Board with ${id} not found`);
 
-  const columnIds = (await this.prismaService.column.findMany({
-    where: { boardId: id }, select: { id: true },
-  })).map(column => column.id);
+    const columnIds = (await this.prismaService.column.findMany({
+      where: { boardId: id }, select: { id: true },
+    })).map(column => column.id);
 
   await this.prismaService.$transaction([
     this.prismaService.card.deleteMany({ where: { columnId: { in: columnIds } } }),

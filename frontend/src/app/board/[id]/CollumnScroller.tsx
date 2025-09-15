@@ -55,7 +55,7 @@ export default function ColumnsScroller({
                         {cards.map((card, index) => {
                           const did = String(card.id ?? "");
                           if (!did) {
-                            console.warn("Card sin id:", card);
+                            console.warn("Card with no id:", card);
                             return null;
                           }
                           return (

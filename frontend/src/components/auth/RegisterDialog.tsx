@@ -17,7 +17,7 @@ export function RegisterDialog({ open, onOpenChange }: { open: boolean; onOpenCh
   const onSubmit = async (e: React.FormEvent) => {
   e.preventDefault();
   try {
-    // Aqui se postea a la DB
+    
     const user = await userService.create({email,fullName,password});
     
     useUserStore.setState({ currentUser: user, isAuthenticated: true });
